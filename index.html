@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About Us</a>
+        <a href="#">Services</a>
+        <a href="#">Contact</a>
+    </nav>
+<main>
+    <div id ="body">
+        <div id="cardContainer"></div>
+     </div>
+     <form id="postForm">
+        <input type="text" id="title" placeholder="Title" >
+        <input type="text" id="description" placeholder="Description" >
+        <input type="text" id="image" placeholder="Image URL" >
+        <input type="number" id="price" placeholder="Price" >
+        <button type="submit">Post</button>
+    </form>
+</main>
+
+
+
+
+    <!-- <footer>
+        <p>&copy; 2024 Hospital System. All rights reserved.</p>
+    </footer>  -->
+
+   
+    <script src="app.js"></script>
+   
+   
+    <script type="module">
+     // Firebase initialization and database reference
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAf1ls-NeBMNnVMu4CxqweAMvs0xkxLXJc",
+    authDomain: "fakeapi-567e0.firebaseapp.com",
+    projectId: "fakeapi-567e0",
+    storageBucket: "fakeapi-567e0.appspot.com",
+    messagingSenderId: "863066479752",
+    appId: "1:863066479752:web:965e6acc47b974f130d33d"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const postsRef = ref(db, 'posts');
+
+// Function to render posts from Firebase Realtime Database
+function renderPosts() {
+    const cardContainer = document.getElementById('cardContainer');
+    cardContainer.innerHTML = '';
+
+    // Fetch data from Firebase and render each post
+    onValue(postsRef, (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            const post = childSnapshot.val();
+            const postId = childSnapshot.key;
+            const card = createCard(post, postId);
+            cardContainer.appendChild(card);
+        });
+    });
+}
+
+// Function to create a card for a post
+function createCard(post, postId) {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const cardTitle = document.createElement('h2');
+    cardTitle.className = 'card-title';
+    cardTitle.textContent = post.title;
+
+    const img = document.createElement('img');
+    img.src = post.image;
+    img.alt = 'Post Image';
+    img.style.width = '100%';
+
+    const cardContentPrice = document.createElement('p');
+    cardContentPrice.textContent = `Price: ${post.price}`;
+
+    const cardContentDesc = document.createElement('p');
+    cardContentDesc.textContent = post.description;
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => {
+        deletePost(postId);
+    });
+
+    card.appendChild(cardTitle);
+    card.appendChild(img);
+    card.appendChild(cardContentPrice);
+    card.appendChild(cardContentDesc);
+    card.appendChild(deleteButton);
+
+    return card;
+}
+
+// Function to delete a post from Firebase
+function deletePost(postId) {
+    set(ref(db, `posts/${postId}`), null)
+        .then(() => {
+            console.log('Document successfully deleted!');
+            renderPosts(); // Refresh posts after deletion
+        })
+        .catch((error) => {
+            console.error('Error removing document: ', error);
+        });
+}
+
+// Form submission for posting new post to Firebase
+document.getElementById('postForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const image = document.getElementById('image').value;
+    const price = document.getElementById('price').value;
+
+    // Add new post to Firebase Realtime Database
+    push(postsRef, {
+        title: title,
+        description: description,
+        image: image,
+        price: price
+    }).then(() => {
+        console.log('Document successfully added!');
+        renderPosts(); // Refresh posts after adding new post
+    }).catch((error) => {
+        console.error('Error adding document: ', error);
+    });
+
+    // Reset form fields
+    this.reset();
+});
+
+// Initial rendering of posts
+renderPosts();
+
+      </script>
+
+</body>
+</html>
